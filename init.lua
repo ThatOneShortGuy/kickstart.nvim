@@ -364,7 +364,32 @@ require('lazy').setup({
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
       },
     },
+    {
+      'numToStr/FTerm.nvim',
+      config = function()
+        local fterm = require 'FTerm'
+
+        -- Setup (optional)
+        fterm.setup {
+          border = 'rounded',
+          cmd = 'pwsh',
+        }
+
+        -- Key mappings (example)
+        vim.keymap.set('n', '<leader>t', fterm.toggle, { desc = 'Toggle FTerm' })
+        vim.keymap.set('t', '<leader>t', fterm.toggle, { desc = 'Toggle FTerm (Terminal Mode)' })
+      end,
+    },
   },
+  -- {
+  --   'numToStr/FTerm.nvim',
+  --
+  --   border = 'double',
+  --   dimensions = {
+  --     height = 0.9,
+  --     width = 0.9,
+  --   },
+  -- },
 
   -- NOTE: Plugins can specify dependencies.
   --
@@ -1027,5 +1052,6 @@ require('lazy').setup({
   },
 })
 
+-- require('numToStr/FTerm').setup {}
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

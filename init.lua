@@ -368,11 +368,14 @@ require('lazy').setup({
       'numToStr/FTerm.nvim',
       config = function()
         local fterm = require 'FTerm'
-
+        local cmd = os.getenv 'SHELL'
+        if cmd == nil then
+          cmd = 'pwsh'
+        end
         -- Setup (optional)
         fterm.setup {
           border = 'rounded',
-          cmd = 'pwsh',
+          cmd = cmd,
         }
 
         -- Key mappings (example)
@@ -1052,6 +1055,5 @@ require('lazy').setup({
   },
 })
 
--- require('numToStr/FTerm').setup {}
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

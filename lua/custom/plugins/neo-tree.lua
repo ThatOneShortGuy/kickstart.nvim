@@ -48,16 +48,16 @@ return {
       -- If you want icons for diagnostic errors, you'll need to define them somewhere.
       -- In Neovim v0.10+, you can configure them in vim.diagnostic.config(), like:
       --
-      -- vim.diagnostic.config({
-      --   signs = {
-      --     text = {
-      --       [vim.diagnostic.severity.ERROR] = '',
-      --       [vim.diagnostic.severity.WARN] = '',
-      --       [vim.diagnostic.severity.INFO] = '',
-      --       [vim.diagnostic.severity.HINT] = '󰌵',
-      --     },
-      --   }
-      -- })
+      vim.diagnostic.config {
+        signs = {
+          text = {
+            [vim.diagnostic.severity.ERROR] = '',
+            [vim.diagnostic.severity.WARN] = '',
+            [vim.diagnostic.severity.INFO] = '',
+            [vim.diagnostic.severity.HINT] = '󰌵',
+          },
+        },
+      }
       --
       -- In older versions, you can define the signs manually:
       -- vim.fn.sign_define("DiagnosticSignError", { text = " ", texthl = "DiagnosticSignError" })
@@ -66,7 +66,7 @@ return {
       -- vim.fn.sign_define("DiagnosticSignHint", { text = "󰌵", texthl = "DiagnosticSignHint" })
 
       require('neo-tree').setup {
-        close_if_last_window = false, -- Close Neo-tree if it is the last window left in the tab
+        close_if_last_window = true, -- Close Neo-tree if it is the last window left in the tab
         popup_border_style = 'NC', -- or "" to use 'winborder' on Neovim v0.11+
         enable_git_status = true,
         enable_diagnostics = true,
@@ -102,6 +102,7 @@ return {
           icon = {
             folder_closed = '',
             folder_open = '',
+            folder_empty_open = '',
             folder_empty = '󰜌',
             provider = function(icon, node, state) -- default icon provider utilizes nvim-web-devicons if available
               if node.type == 'file' or node.type == 'terminal' then
@@ -131,8 +132,8 @@ return {
           git_status = {
             symbols = {
               -- Change type
-              added = '', -- or "✚", but this is redundant info if you use git_status_colors on the name
-              modified = '', -- or "", but this is redundant info if you use git_status_colors on the name
+              added = '✚', -- or "✚", but this is redundant info if you use git_status_colors on the name
+              modified = '', -- or "", but this is redundant info if you use git_status_colors on the name
               deleted = '✖', -- this can only be used in the git_status source
               renamed = '󰁕', -- this can only be used in the git_status source
               -- Status type

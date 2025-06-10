@@ -942,7 +942,7 @@ require('lazy').setup({
   },
 
   -- Highlight todo, notes, etc in comments
-  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
+  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = vim.g.have_nerd_font } },
 
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
@@ -1032,7 +1032,44 @@ require('lazy').setup({
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
   -- In normal mode type `<space>sh` then write `lazy.nvim-plugin`
-  -- you can continue same window with `<space>sr` which resumes last telescope search
+  {
+    'Shatur/neovim-session-manager',
+    dependencies = { 'plenary.nvim' },
+    config = function()
+      local Path = require 'plenary.path'
+      local config = require 'session_manager.config'
+      require('session_manager').setup {
+        sessions_dir = Path:new(vim.fn.stdpath 'data', 'sessions'), -- The directory where the session files will be saved.
+        -- session_filename_to_dir = session_filename_to_dir, -- Function that replaces symbols into separators and colons to transform filename into a session directory.
+        -- dir_to_session_filename = dir_to_session_filename, -- Function that replaces separators and colons into special symbols to transform session directory into a filename. Should use `vim.uv.cwd()` if the passed `dir` is `nil`.
+        autoload_mode = { config.AutoloadMode.GitSession, config.AutoloadMode.CurrentDir }, -- Define what to do when Neovim is started without arguments. See "Autoload mode" section below.
+        autosave_last_session = true, -- Automatically save last session on exit and on session switch.
+        autosave_ignore_not_normal = true, -- Plugin will not save a session when no buffers are opened, or all of them aren't writable or listed.
+        autosave_ignore_dirs = {}, -- A list of directories where the session will not be autosaved.
+        autosave_ignore_filetypes = { -- All buffers of these file types will be closed before the session is saved.
+          'gitcommit',
+          'gitrebase',
+        },
+        autosave_ignore_buftypes = {}, -- All buffers of these bufer types will be closed before the session is saved.
+        autosave_only_in_session = false, -- Always autosaves session. If true, only autosaves after a session is active.
+        max_path_length = 80, -- Shorten the display path if length exceeds this threshold. Use 0 if don't want to shorten the path at all.
+        load_include_current = false, -- The currently loaded session appears in the load_session UI.
+      }
+
+      -- Auto save session
+      vim.api.nvim_create_autocmd({ 'BufWritePre' }, {
+        callback = function()
+          for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+            -- Don't save while there's any 'nofile' buffer open.
+            if vim.api.nvim_get_option_value('buftype', { buf = buf }) == 'nofile' then
+              return
+            end
+          end
+          require('session_manager').save_current_session()
+        end,
+      })
+    end,
+  }, -- you can continue same window with `<space>sr` which resumes last telescope search
 }, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the

@@ -466,6 +466,18 @@ require('lazy').setup({
       -- Enable Telescope extensions if they are installed
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
+      pcall(require('telescope').load_extension, 'workspaces')
+      require('telescope').setup {
+        extensions = {
+          workspaces = {
+            -- keep insert mode after selection in the picker, default is false
+            keep_insert = true,
+            -- Highlight group used for the path in the picker, default is "String"
+            path_hl = 'String',
+          },
+        },
+      }
+      -- Add workspace telescope
 
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
@@ -473,7 +485,8 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
       vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
       vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
-      vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
+      vim.keymap.set('n', '<leader>scw', builtin.grep_string, { desc = '[S]earch [C]urrent [W]ord' })
+      vim.keymap.set('n', '<leader>sls', builtin.lsp_workspace_symbols, { desc = '[S]earch [L]SP [S]ymbols' })
       vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
       vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
@@ -1035,6 +1048,7 @@ require('lazy').setup({
   {
     'Shatur/neovim-session-manager',
     dependencies = { 'plenary.nvim' },
+    lazy = false,
     config = function()
       local Path = require 'plenary.path'
       local config = require 'session_manager.config'
@@ -1070,6 +1084,58 @@ require('lazy').setup({
       })
     end,
   }, -- you can continue same window with `<space>sr` which resumes last telescope search
+
+  {
+    'natecraddock/workspaces.nvim',
+    config = function()
+      require('workspaces').setup {
+        -- path to a file to store workspaces data in
+        -- on a unix system this would be ~/.local/share/nvim/workspaces
+        path = vim.fn.stdpath 'data' .. '/workspaces',
+
+        -- to change directory for nvim (:cd), or only for window (:lcd)
+        -- deprecated, use cd_type instead
+        -- global_cd = true,
+
+        -- controls how the directory is changed. valid options are "global", "local", and "tab"
+        --   "global" changes directory for the neovim process. same as the :cd command
+        --   "local" changes directory for the current window. same as the :lcd command
+        --   "tab" changes directory for the current tab. same as the :tcd command
+        --
+        -- if set, overrides the value of global_cd
+        cd_type = 'global',
+
+        -- sort the list of workspaces by name after loading from the workspaces path.
+        sort = true,
+
+        -- sort by recent use rather than by name. requires sort to be true
+        mru_sort = true,
+
+        -- option to automatically activate workspace when opening neovim in a workspace directory
+        auto_open = true,
+
+        -- option to automatically activate workspace when changing directory not via this plugin
+        -- set to "autochdir" to enable auto_dir when using :e and vim.opt.autochdir
+        -- valid options are false, true, and "autochdir"
+        auto_dir = false,
+
+        -- enable info-level notifications after adding or removing a workspace
+        notify_info = true,
+
+        -- lists of hooks to run after specific actions
+        -- hooks can be a lua function or a vim command (string)
+        -- lua hooks take a name, a path, and an optional state table
+        -- if only one hook is needed, the list may be omitted
+        hooks = {
+          add = {},
+          remove = {},
+          rename = {},
+          open_pre = {},
+          open = { 'Telescope find_files' },
+        },
+      }
+    end,
+  },
 }, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the

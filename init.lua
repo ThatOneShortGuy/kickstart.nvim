@@ -232,6 +232,17 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
+-- For php, use spaces instead of tabs
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'php',
+  callback = function()
+    vim.opt_local.expandtab = true -- Use spaces instead of tabs
+    vim.opt_local.shiftwidth = 4 -- Indent width
+    vim.opt_local.tabstop = 4 -- Number of spaces per tab
+    vim.opt_local.softtabstop = 4 -- Insert 4 spaces when pressing tab
+  end,
+})
+
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -478,6 +489,9 @@ require('lazy').setup({
         },
       }
       -- Add workspace telescope
+      vim.keymap.set('n', '<leader>sw', function()
+        vim.cmd 'Telescope workspaces'
+      end, { desc = '[S]earch [W]orkspaces' })
 
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
@@ -824,6 +838,7 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
+        php = { 'pint' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -1055,7 +1070,7 @@ require('lazy').setup({
       require('session_manager').setup {
         sessions_dir = Path:new(vim.fn.stdpath 'data', 'sessions'), -- The directory where the session files will be saved.
         -- session_filename_to_dir = session_filename_to_dir, -- Function that replaces symbols into separators and colons to transform filename into a session directory.
-        -- dir_to_session_filename = dir_to_session_filename, -- Function that replaces separators and colons into special symbols to transform session directory into a filename. Should use `vim.uv.cwd()` if the passed `dir` is `nil`.
+        dir_to_session_filename = dir_to_session_filename, -- Function that replaces separators and colons into special symbols to transform session directory into a filename. Should use `vim.uv.cwd()` if the passed `dir` is `nil`.
         autoload_mode = { config.AutoloadMode.GitSession, config.AutoloadMode.CurrentDir }, -- Define what to do when Neovim is started without arguments. See "Autoload mode" section below.
         autosave_last_session = true, -- Automatically save last session on exit and on session switch.
         autosave_ignore_not_normal = true, -- Plugin will not save a session when no buffers are opened, or all of them aren't writable or listed.
@@ -1065,7 +1080,7 @@ require('lazy').setup({
           'gitrebase',
         },
         autosave_ignore_buftypes = {}, -- All buffers of these bufer types will be closed before the session is saved.
-        autosave_only_in_session = false, -- Always autosaves session. If true, only autosaves after a session is active.
+        autosave_only_in_session = true, -- Always autosaves session. If true, only autosaves after a session is active.
         max_path_length = 80, -- Shorten the display path if length exceeds this threshold. Use 0 if don't want to shorten the path at all.
         load_include_current = false, -- The currently loaded session appears in the load_session UI.
       }
@@ -1117,7 +1132,7 @@ require('lazy').setup({
         -- option to automatically activate workspace when changing directory not via this plugin
         -- set to "autochdir" to enable auto_dir when using :e and vim.opt.autochdir
         -- valid options are false, true, and "autochdir"
-        auto_dir = false,
+        auto_dir = true,
 
         -- enable info-level notifications after adding or removing a workspace
         notify_info = true,
@@ -1130,10 +1145,23 @@ require('lazy').setup({
           add = {},
           remove = {},
           rename = {},
-          open_pre = {},
-          open = { 'Telescope find_files' },
+          open_pre = {
+            -- If recording, save current session state and stop recording
+            'SessionManager save_current_session',
+
+            -- delete all buffers (does not save changes)
+            'silent %bdelete!',
+          },
+          -- open = function() require('neo-tree').open() end,
+          open = { 'Neotree left', 'SessionManager load_current_dir_session' },
+          -- open = { 'Telescope find_files' },
         },
       }
+      local workspaces = require 'workspaces'
+
+      vim.keymap.set('n', '<leader>wa', function()
+        workspaces.add(vim.fn.input('Workspace Name: ', vim.fn.fnamemodify(vim.fn.getcwd(), ':t')))
+      end, { desc = '[W]orkspaces [A]dd' })
     end,
   },
 }, {

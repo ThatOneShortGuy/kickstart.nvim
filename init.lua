@@ -118,6 +118,9 @@ vim.schedule(function()
   vim.o.clipboard = 'unnamedplus'
 end)
 
+-- Enable Auto-Reload
+vim.opt.autoread = true
+
 -- Enable break indent
 vim.o.breakindent = true
 
@@ -745,25 +748,20 @@ require('lazy').setup({
         -- gopls = {},
         pyright = {},
         pylsp = {
-          settings = {
-            pylsp = {
-              configurationSources = { 'flake8' },
-              plugins = {
-                flake8 = {
-                  enabled = false,
-                  ignore = { 'E501', 'E231' },
-                  maxLineLength = 150,
-                },
-                black = { enabled = true },
-                autopep8 = { enabled = false },
-                mccabe = { enabled = false },
-                pycodestyle = {
-                  enabled = false,
-                  ignore = { 'E501', 'E231' },
-                  maxLineLength = 150,
-                },
-                pyflakes = { enabled = false },
+          pylsp = {
+            plugins = {
+              pycodestyle = {
+                ignore = { 'W391', 'E501', 'E231' },
+                maxLineLength = 150,
               },
+              flake8 = {
+                ignore = { 'E501', 'E231' },
+                maxLineLength = 150,
+              },
+              black = { enabled = true },
+              autopep8 = { enabled = false },
+              mccabe = { enabled = false },
+              pyflakes = { enabled = false },
             },
           },
         },

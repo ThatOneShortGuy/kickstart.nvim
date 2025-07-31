@@ -213,10 +213,10 @@ vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower win
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
--- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
--- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
--- vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
--- vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
+vim.keymap.set('n', '<C-S-h>', '<C-w>H', { desc = 'Move window to the left' })
+vim.keymap.set('n', '<C-S-l>', '<C-w>L', { desc = 'Move window to the right' })
+vim.keymap.set('n', '<C-S-j>', '<C-w>J', { desc = 'Move window to the lower' })
+vim.keymap.set('n', '<C-S-k>', '<C-w>K', { desc = 'Move window to the upper' })
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -234,7 +234,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 
 -- For php, use spaces instead of tabs
 vim.api.nvim_create_autocmd('FileType', {
-  pattern = 'php',
+  pattern = '*',
   callback = function()
     vim.opt_local.expandtab = true -- Use spaces instead of tabs
     vim.opt_local.shiftwidth = 4 -- Indent width
@@ -395,15 +395,6 @@ require('lazy').setup({
       end,
     },
   },
-  -- {
-  --   'numToStr/FTerm.nvim',
-  --
-  --   border = 'double',
-  --   dimensions = {
-  --     height = 0.9,
-  --     width = 0.9,
-  --   },
-  -- },
 
   -- NOTE: Plugins can specify dependencies.
   --
@@ -893,12 +884,12 @@ require('lazy').setup({
           -- `friendly-snippets` contains a variety of premade snippets.
           --    See the README about individual language/framework/plugin snippets:
           --    https://github.com/rafamadriz/friendly-snippets
-          -- {
-          --   'rafamadriz/friendly-snippets',
-          --   config = function()
-          --     require('luasnip.loaders.from_vscode').lazy_load()
-          --   end,
-          -- },
+          {
+            'rafamadriz/friendly-snippets',
+            config = function()
+              require('luasnip.loaders.from_vscode').lazy_load()
+            end,
+          },
         },
         opts = {},
       },
@@ -944,7 +935,7 @@ require('lazy').setup({
       completion = {
         -- By default, you may press `<c-space>` to show the documentation.
         -- Optionally, set `auto_show = true` to show the documentation after a delay.
-        documentation = { auto_show = false, auto_show_delay_ms = 500 },
+        documentation = { auto_show = true, auto_show_delay_ms = 1000 },
       },
 
       sources = {
@@ -963,7 +954,7 @@ require('lazy').setup({
       -- the rust implementation via `'prefer_rust_with_warning'`
       --
       -- See :h blink-cmp-config-fuzzy for more information
-      fuzzy = { implementation = 'lua' },
+      fuzzy = { implementation = 'prefer_rust_with_warning' },
 
       -- Shows a signature help window while you type arguments for a function
       signature = { enabled = true },
@@ -1012,6 +1003,33 @@ require('lazy').setup({
       -- - sd'   - [S]urround [D]elete [']quotes
       -- - sr)'  - [S]urround [R]eplace [)] [']
       require('mini.surround').setup()
+
+      -- Move text around
+      require('mini.move').setup {
+        -- Module mappings. Use `''` (empty string) to disable one.
+        mappings = {
+          -- Move visual selection in Visual mode. Defaults are Alt (Meta) + hjkl.
+          left = '<M-Left>',
+          right = '<M-Right>',
+          down = '<M-Down>',
+          up = '<M-Up>',
+
+          -- Move current line in Normal mode
+          line_left = '<M-Left>',
+          line_right = '<M-Right>',
+          line_down = '<M-Down>',
+          line_up = '<M-Up>',
+        },
+
+        -- Options which control moving behavior
+        options = {
+          -- Automatically reindent selection during linewise vertical move
+          reindent_linewise = true,
+        },
+      }
+
+      -- Split join to make long lines readable
+      require('mini.splitjoin').setup()
 
       -- Simple and easy statusline.
       --  You could remove this setup call if you don't like it,
@@ -1072,7 +1090,7 @@ require('lazy').setup({
   -- require 'kickstart.plugins.lint',
   -- require 'kickstart.plugins.autopairs',
   -- require 'kickstart.plugins.neo-tree',
-  -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
@@ -1083,45 +1101,6 @@ require('lazy').setup({
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
   -- In normal mode type `<space>sh` then write `lazy.nvim-plugin`
-  {
-    'Shatur/neovim-session-manager',
-    dependencies = { 'plenary.nvim' },
-    lazy = false,
-    config = function()
-      local Path = require 'plenary.path'
-      local config = require 'session_manager.config'
-      require('session_manager').setup {
-        sessions_dir = Path:new(vim.fn.stdpath 'data', 'sessions'), -- The directory where the session files will be saved.
-        -- session_filename_to_dir = session_filename_to_dir, -- Function that replaces symbols into separators and colons to transform filename into a session directory.
-        dir_to_session_filename = dir_to_session_filename, -- Function that replaces separators and colons into special symbols to transform session directory into a filename. Should use `vim.uv.cwd()` if the passed `dir` is `nil`.
-        autoload_mode = { config.AutoloadMode.GitSession, config.AutoloadMode.CurrentDir }, -- Define what to do when Neovim is started without arguments. See "Autoload mode" section below.
-        autosave_last_session = true, -- Automatically save last session on exit and on session switch.
-        autosave_ignore_not_normal = true, -- Plugin will not save a session when no buffers are opened, or all of them aren't writable or listed.
-        autosave_ignore_dirs = {}, -- A list of directories where the session will not be autosaved.
-        autosave_ignore_filetypes = { -- All buffers of these file types will be closed before the session is saved.
-          'gitcommit',
-          'gitrebase',
-        },
-        autosave_ignore_buftypes = {}, -- All buffers of these bufer types will be closed before the session is saved.
-        autosave_only_in_session = true, -- Always autosaves session. If true, only autosaves after a session is active.
-        max_path_length = 80, -- Shorten the display path if length exceeds this threshold. Use 0 if don't want to shorten the path at all.
-        load_include_current = false, -- The currently loaded session appears in the load_session UI.
-      }
-
-      -- Auto save session
-      vim.api.nvim_create_autocmd({ 'BufWritePre' }, {
-        callback = function()
-          for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-            -- Don't save while there's any 'nofile' buffer open.
-            if vim.api.nvim_get_option_value('buftype', { buf = buf }) == 'nofile' then
-              return
-            end
-          end
-          require('session_manager').save_current_session()
-        end,
-      })
-    end,
-  }, -- you can continue same window with `<space>sr` which resumes last telescope search
 
   {
     'natecraddock/workspaces.nvim',
@@ -1169,14 +1148,11 @@ require('lazy').setup({
           remove = {},
           rename = {},
           open_pre = {
-            -- If recording, save current session state and stop recording
-            'SessionManager save_current_session',
-
             -- delete all buffers (does not save changes)
             'silent %bdelete!',
           },
           -- open = function() require('neo-tree').open() end,
-          open = { 'Neotree left', 'SessionManager load_current_dir_session' },
+          open = { 'Neotree left' },
           -- open = { 'Telescope find_files' },
         },
       }
@@ -1206,7 +1182,7 @@ require('lazy').setup({
   },
   {
     'kdheepak/lazygit.nvim',
-    lazy = false,
+    lazy = true,
     cmd = {
       'LazyGit',
       'LazyGitConfig',

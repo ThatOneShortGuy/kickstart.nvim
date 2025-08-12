@@ -200,6 +200,37 @@ end)
 -- or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
+-- Copy on yanks through OSC52
+require('osc52').setup {}
+
+-- Map yanks to also copy to system clipboard via OSC52
+local function copy(lines, _)
+  require('osc52').copy(table.concat(lines, '\n'))
+end
+
+-- Provider that sends copies via OSC52; paste falls back to terminal paste
+vim.g.clipboard = {
+  name = 'osc52',
+  copy = { ['+'] = copy, ['*'] = copy },
+  paste = {
+    ['+'] = function()
+      return { {}, '' }
+    end,
+    ['*'] = function()
+      return { {}, '' }
+    end,
+  },
+}
+
+-- Optional: make yanks trigger osc52 automatically
+vim.api.nvim_create_autocmd('TextYankPost', {
+  callback = function()
+    if vim.v.event.operator == 'y' and vim.v.event.regname == '+' or vim.v.event.regname == '' then
+      require('osc52').copy_register '+'
+    end
+  end,
+})
+
 -- TIP: Disable arrow keys in normal mode
 -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
 -- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')

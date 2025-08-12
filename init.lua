@@ -200,37 +200,6 @@ end)
 -- or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
--- Copy on yanks through OSC52
-require('osc52').setup {}
-
--- Map yanks to also copy to system clipboard via OSC52
-local function copy(lines, _)
-  require('osc52').copy(table.concat(lines, '\n'))
-end
-
--- Provider that sends copies via OSC52; paste falls back to terminal paste
-vim.g.clipboard = {
-  name = 'osc52',
-  copy = { ['+'] = copy, ['*'] = copy },
-  paste = {
-    ['+'] = function()
-      return { {}, '' }
-    end,
-    ['*'] = function()
-      return { {}, '' }
-    end,
-  },
-}
-
--- Optional: make yanks trigger osc52 automatically
-vim.api.nvim_create_autocmd('TextYankPost', {
-  callback = function()
-    if vim.v.event.operator == 'y' and vim.v.event.regname == '+' or vim.v.event.regname == '' then
-      require('osc52').copy_register '+'
-    end
-  end,
-})
-
 -- TIP: Disable arrow keys in normal mode
 -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
 -- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
@@ -1231,6 +1200,49 @@ require('lazy').setup({
     },
     config = function()
       require('telescope').load_extension 'lazygit'
+    end,
+  },
+  {
+    'ojroques/nvim-osc52',
+    event = 'VeryLazy',
+    opts = {
+      -- you can pass opts here; defaults are fine for most
+    },
+    config = function(_, opts)
+      local osc52 = require 'osc52'
+      osc52.setup(opts)
+
+      -- Use Neovim's +/* registers for copy (write-only via OSC52)
+      local function copy(lines, _)
+        osc52.copy(table.concat(lines, '\n'))
+      end
+      vim.g.clipboard = {
+        name = 'osc52',
+        copy = { ['+'] = copy, ['*'] = copy },
+        -- Most terminals don't allow OSC52 paste (read) for security; fall back to terminal paste
+        paste = {
+          ['+'] = function()
+            return { '', '' }
+          end,
+          ['*'] = function()
+            return { '', '' }
+          end,
+        },
+      }
+
+      -- Auto-copy on yank (works with LazyVim & yanky)
+      vim.api.nvim_create_autocmd('TextYankPost', {
+        callback = function()
+          if vim.v.event.operator == 'y' and (vim.v.event.regname == '' or vim.v.event.regname == '+') then
+            require('osc52').copy_register '+'
+          end
+        end,
+      })
+
+      -- Optional: explicit keymaps for “copy via OSC52” if you like
+      -- vim.keymap.set({ "n", "x" }, "<leader>y", function()
+      --   require("osc52").copy_visual()
+      -- end, { desc = "Copy selection to system clipboard (OSC52)" })
     end,
   },
 }, {

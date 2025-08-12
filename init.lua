@@ -110,14 +110,6 @@ vim.o.mouse = 'a'
 -- Don't show the mode, since it's already in the status line
 vim.o.showmode = false
 
--- Sync clipboard between OS and Neovim.
---  Schedule the setting after `UiEnter` because it can increase startup-time.
---  Remove this option if you want your OS clipboard to remain independent.
---  See `:help 'clipboard'`
-vim.schedule(function()
-  vim.o.clipboard = 'unnamedplus'
-end)
-
 -- Enable Auto-Reload
 vim.opt.autoread = true
 
@@ -1205,44 +1197,55 @@ require('lazy').setup({
   {
     'ojroques/nvim-osc52',
     event = 'VeryLazy',
-    opts = {
-      -- you can pass opts here; defaults are fine for most
-    },
+    opts = { silent = true },
     config = function(_, opts)
-      local osc52 = require 'osc52'
+      local ok, osc52 = pcall(require, 'osc52')
+      if not ok then
+        return
+      end
       osc52.setup(opts)
 
-      -- Use Neovim's +/* registers for copy (write-only via OSC52)
+      -- COPY-ONLY provider (terminals usually block OSC52 readback)
       local function copy(lines, _)
         osc52.copy(table.concat(lines, '\n'))
       end
-      vim.g.clipboard = {
-        name = 'osc52',
-        copy = { ['+'] = copy, ['*'] = copy },
-        -- Most terminals don't allow OSC52 paste (read) for security; fall back to terminal paste
-        paste = {
-          ['+'] = function()
-            return { '', '' }
-          end,
-          ['*'] = function()
-            return { '', '' }
-          end,
-        },
-      }
 
-      -- Auto-copy on yank (works with LazyVim & yanky)
+      -- Re-apply our clipboard provider *late* to beat other plugins
+      -- (Do it now AND once more on VimEnter to win any late overrides)
+      local function set_provider()
+        vim.g.clipboard = {
+          name = 'osc52',
+          copy = { ['+'] = copy, ['*'] = copy },
+          paste = {
+            ['+'] = function()
+              return { '', '' }
+            end,
+            ['*'] = function()
+              return { '', '' }
+            end,
+          },
+        }
+      end
+      set_provider()
+      vim.api.nvim_create_autocmd('VimEnter', {
+        once = true,
+        callback = set_provider,
+      })
+
+      -- Ensure unnamed register writes to +
+      vim.opt.clipboard = 'unnamedplus'
+
+      -- Robust yank hook: copy whatever ended up in the unnamed register
+      -- Trigger on any yank (no regname filter) to avoid edge-cases
       vim.api.nvim_create_autocmd('TextYankPost', {
         callback = function()
-          if vim.v.event.operator == 'y' and (vim.v.event.regname == '' or vim.v.event.regname == '+') then
-            require('osc52').copy_register '+'
+          if vim.v.event.operator == 'y' then
+            -- Prefer copying the actual text Neovim just yanked.
+            -- If yanky.nvim is present, this still works because it populates the unnamed register.
+            pcall(osc52.copy, table.concat(vim.fn.getreginfo('"').regcontents or {}, '\n'))
           end
         end,
       })
-
-      -- Optional: explicit keymaps for “copy via OSC52” if you like
-      -- vim.keymap.set({ "n", "x" }, "<leader>y", function()
-      --   require("osc52").copy_visual()
-      -- end, { desc = "Copy selection to system clipboard (OSC52)" })
     end,
   },
 }, {

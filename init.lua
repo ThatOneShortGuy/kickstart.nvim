@@ -1199,54 +1199,57 @@ require('lazy').setup({
     event = 'VeryLazy',
     opts = { silent = true },
     config = function(_, opts)
-      local ok, osc52 = pcall(require, 'osc52')
-      if not ok then
-        return
+      local is_ssh = vim.env.SSH_TTY ~= nil or vim.env.SSH_CONNECTION ~= nil
+      if is_ssh then
+        local ok, osc52 = pcall(require, 'osc52')
+        if not ok then
+          return
+        end
+        osc52.setup(opts)
+
+        -- COPY-ONLY provider (terminals usually block OSC52 readback)
+        local function copy(lines, _)
+          osc52.copy(table.concat(lines, '\n'))
+        end
+
+        -- Re-apply our clipboard provider *late* to beat other plugins
+        -- (Do it now AND once more on VimEnter to win any late overrides)
+        local function set_provider()
+          vim.g.clipboard = {
+            name = 'osc52',
+            copy = { ['+'] = copy, ['*'] = copy },
+            paste = {
+              ['+'] = function()
+                -- read from Neovim’s own + register (split into lines), preserve type
+                return vim.fn.getreg('+', 1), vim.fn.getregtype '+'
+              end,
+              ['*'] = function()
+                return vim.fn.getreg('*', 1), vim.fn.getregtype '*'
+              end,
+            },
+          }
+        end
+        set_provider()
+        vim.api.nvim_create_autocmd('VimEnter', {
+          once = true,
+          callback = set_provider,
+        })
+
+        -- Robust yank hook: copy whatever ended up in the unnamed register
+        -- Trigger on any yank (no regname filter) to avoid edge-cases
+        vim.api.nvim_create_autocmd('TextYankPost', {
+          callback = function()
+            if vim.v.event.operator == 'y' then
+              -- Prefer copying the actual text Neovim just yanked.
+              -- If yanky.nvim is present, this still works because it populates the unnamed register.
+              pcall(osc52.copy, table.concat(vim.fn.getreginfo('"').regcontents or {}, '\n'))
+            end
+          end,
+        })
+      else
+        vim.opt.clipboard = 'unnamedplus'
+        vim.g.clipboard = nil
       end
-      osc52.setup(opts)
-
-      -- COPY-ONLY provider (terminals usually block OSC52 readback)
-      local function copy(lines, _)
-        osc52.copy(table.concat(lines, '\n'))
-      end
-
-      -- Re-apply our clipboard provider *late* to beat other plugins
-      -- (Do it now AND once more on VimEnter to win any late overrides)
-      local function set_provider()
-        vim.g.clipboard = {
-          name = 'osc52',
-          copy = { ['+'] = copy, ['*'] = copy },
-          paste = {
-            ['+'] = function()
-              -- read from Neovim’s own + register (split into lines), preserve type
-              return vim.fn.getreg('+', 1), vim.fn.getregtype '+'
-            end,
-            ['*'] = function()
-              return vim.fn.getreg('*', 1), vim.fn.getregtype '*'
-            end,
-          },
-        }
-      end
-      set_provider()
-      vim.api.nvim_create_autocmd('VimEnter', {
-        once = true,
-        callback = set_provider,
-      })
-
-      -- Ensure unnamed register writes to +
-      vim.opt.clipboard = 'unnamedplus'
-
-      -- Robust yank hook: copy whatever ended up in the unnamed register
-      -- Trigger on any yank (no regname filter) to avoid edge-cases
-      vim.api.nvim_create_autocmd('TextYankPost', {
-        callback = function()
-          if vim.v.event.operator == 'y' then
-            -- Prefer copying the actual text Neovim just yanked.
-            -- If yanky.nvim is present, this still works because it populates the unnamed register.
-            pcall(osc52.copy, table.concat(vim.fn.getreginfo('"').regcontents or {}, '\n'))
-          end
-        end,
-      })
     end,
   },
 }, {

@@ -1212,28 +1212,19 @@ require('lazy').setup({
           osc52.copy(table.concat(lines, '\n'))
         end
 
-        -- Re-apply our clipboard provider *late* to beat other plugins
-        -- (Do it now AND once more on VimEnter to win any late overrides)
-        local function set_provider()
-          vim.g.clipboard = {
-            name = 'osc52',
-            copy = { ['+'] = copy, ['*'] = copy },
-            paste = {
-              ['+'] = function()
-                -- read from Neovim’s own + register (split into lines), preserve type
-                return vim.fn.getreg('+', 1), vim.fn.getregtype '+'
-              end,
-              ['*'] = function()
-                return vim.fn.getreg('*', 1), vim.fn.getregtype '*'
-              end,
-            },
-          }
-        end
-        set_provider()
-        vim.api.nvim_create_autocmd('VimEnter', {
-          once = true,
-          callback = set_provider,
-        })
+        -- Clipboard provider: copy via OSC52; paste falls back to internal regs
+        vim.g.clipboard = {
+          name = 'osc52',
+          copy = { ['+'] = copy, ['*'] = copy },
+          paste = {
+            ['+'] = function()
+              return vim.fn.getreg('+', 1), vim.fn.getregtype '+'
+            end,
+            ['*'] = function()
+              return vim.fn.getreg('*', 1), vim.fn.getregtype '*'
+            end,
+          },
+        }
 
         -- Robust yank hook: copy whatever ended up in the unnamed register
         -- Trigger on any yank (no regname filter) to avoid edge-cases

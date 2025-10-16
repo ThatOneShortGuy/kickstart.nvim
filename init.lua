@@ -1218,10 +1218,11 @@ require('lazy').setup({
           copy = { ['+'] = copy, ['*'] = copy },
           paste = {
             ['+'] = function()
-              return { '', '' }
+              -- read from Neovim’s own + register (split into lines), preserve type
+              return vim.fn.getreg('+', 1), vim.fn.getregtype '+'
             end,
             ['*'] = function()
-              return { '', '' }
+              return vim.fn.getreg('*', 1), vim.fn.getregtype '*'
             end,
           },
         }

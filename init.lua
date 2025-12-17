@@ -184,6 +184,21 @@ vim.keymap.set('x', '<C-_>', function()
   require('Comment.api').toggle.linewise(vim.fn.visualmode())
 end)
 
+-- Absolute File Name
+vim.keymap.set('n', '<leader>yaf', function()
+  vim.fn.setreg('+', vim.fn.expand '%')
+end, { desc = 'Copy absolute file path' })
+
+-- Relative File Name
+vim.keymap.set('n', '<leader>yd', function()
+  vim.fn.setreg('+', vim.fn.expand '%:p:h')
+end, { desc = 'Copy directory path' })
+
+-- File Name Only
+vim.keymap.set('n', '<leader>yf', function()
+  vim.fn.setreg('+', vim.fn.expand '%:t')
+end, { desc = 'Copy file name' })
+
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
 -- is not what someone will guess without a bit more experience.

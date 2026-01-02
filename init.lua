@@ -268,6 +268,20 @@ end
 local rtp = vim.opt.rtp
 rtp:prepend(lazypath)
 
+-- Neovide stuffs
+if vim.g.neovide then
+  vim.g.neovide_scale_factor = 0.6 -- Default on neovide open
+  local change_scale_factor = function(delta)
+    vim.g.neovide_scale_factor = vim.g.neovide_scale_factor * delta
+  end
+  vim.keymap.set('n', '<C-=>', function()
+    change_scale_factor(1.1)
+  end)
+  vim.keymap.set('n', '<C-->', function()
+    change_scale_factor(1 / 1.1)
+  end)
+end
+
 -- [[ Configure and install plugins ]]
 --
 --  To check the current status of your plugins, run

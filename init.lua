@@ -839,6 +839,16 @@ require('lazy').setup({
           end,
         },
       }
+
+      -- We manually do psalm here so we can start it manually using the project specific version
+      vim.lsp.config('psalm', {
+        cmd = { 'php', '-d', 'opcache.enable_cli=0', 'vendor/bin/psalm-language-server' },
+        filetypes = { 'php' },
+        root_markers = { 'composer.json', 'psalm.xml', 'psalm.xml.dist', '.git' },
+        capabilities = capabilities,
+      })
+
+      vim.lsp.enable 'psalm'
     end,
   },
 

@@ -1325,7 +1325,7 @@ require('lazy').setup({
           level = _99.DEBUG,
           path = '/tmp/' .. basename .. '.99.debug',
           print_on_error = true,
-          type = 'file',
+          type = 'void',
         },
         model = 'ollama/devstral-small-2',
 

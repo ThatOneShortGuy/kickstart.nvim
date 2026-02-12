@@ -837,6 +837,19 @@ require('lazy').setup({
         },
       }
 
+      vim.lsp.config('intelephense', {
+        on_init = function(client)
+          client.server_capabilities.documentFormattingProvider = false
+        end,
+        settings = {
+          intelephense = {
+            format = {
+              enable = false,
+            },
+          },
+        },
+      })
+
       -- We manually do psalm here so we can start it manually using the project specific version
       vim.lsp.config('psalm', {
         cmd = { 'php', '-d', 'opcache.enable_cli=0', 'vendor/bin/psalm-language-server' },
@@ -1326,7 +1339,7 @@ require('lazy').setup({
           print_on_error = true,
           type = 'void',
         },
-        model = 'ollama/devstral-small-2',
+        model = 'openai/gpt-5.2-codex',
 
         --- A new feature that is centered around tags
         completion = {

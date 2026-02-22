@@ -1520,6 +1520,10 @@ require('lazy').setup({
     ft = 'php', -- Load only for PHP files
     opts = {},
   },
+  {
+    'fei6409/log-highlight.nvim',
+    opts = {},
+  },
 }, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the

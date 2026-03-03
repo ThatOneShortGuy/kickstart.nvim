@@ -846,6 +846,9 @@ require('lazy').setup({
             format = {
               enable = false,
             },
+            compatibility = {
+              preferPsalmPhpstanPrefixedAnnotations = true,
+            },
           },
         },
       })

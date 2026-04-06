@@ -1564,10 +1564,32 @@ require('lazy').setup({
       }
     end,
   },
+  -- {
+  --   'calvinludwig/mago.nvim',
+  --   ft = 'php', -- Load only for PHP files
+  --   opts = {
+  --     logging = {
+  --       notify = false,
+  --       write_to_log = true,
+  --       min_level = 'ERROR',
+  --       log_file = nil,
+  --     },
+  --   },
+  -- },
   {
-    'calvinludwig/mago.nvim',
+    'ThatOneShortGuy/mago.nvim',
+    branch = 'test/both',
+    -- dir = '~/mago.nvim',
+    -- name = 'mago.nvim',
     ft = 'php', -- Load only for PHP files
-    opts = {},
+    opts = {
+      logging = {
+        notify = true,
+        write_to_log = true,
+        min_level = 'WARN',
+        log_file = nil,
+      },
+    },
   },
   {
     'fei6409/log-highlight.nvim',

@@ -1592,7 +1592,7 @@ require('lazy').setup({
       diagnostics = {
         checkers = {
           lint = true,
-          analyze = false,
+          analyze = true,
           guard = true,
         },
       },

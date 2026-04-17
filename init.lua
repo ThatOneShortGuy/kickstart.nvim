@@ -1578,16 +1578,23 @@ require('lazy').setup({
   -- },
   {
     'ThatOneShortGuy/mago.nvim',
-    branch = 'test/both',
+    branch = 'test/all',
     -- dir = '~/mago.nvim',
     -- name = 'mago.nvim',
     ft = 'php', -- Load only for PHP files
     opts = {
       logging = {
-        notify = true,
+        notify = false,
         write_to_log = true,
         min_level = 'WARN',
         log_file = nil,
+      },
+      diagnostics = {
+        checkers = {
+          lint = true,
+          analyze = false,
+          guard = true,
+        },
       },
     },
   },

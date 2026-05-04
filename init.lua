@@ -1388,7 +1388,7 @@ require('lazy').setup({
           print_on_error = true,
           type = 'void',
         },
-        model = 'openai/gpt-5.2-codex',
+        model = 'openai/gpt-5.3-codex',
 
         --- A new feature that is centered around tags
         completion = {

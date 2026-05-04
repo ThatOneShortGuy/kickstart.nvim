@@ -869,23 +869,7 @@ require('lazy').setup({
     'ThatOneShortGuy/sf_formula.nvim',
     ft = { 'sff' },
     build = function()
-      if vim.fn.executable 'sf_formula_lsp' == 1 then
-        return
-      end
-
-      local cmd = {
-        'cargo',
-        'install',
-        '--locked',
-        '--git',
-        'https://github.com/ThatOneShortGuy/sf-formula-parser',
-        'sf_formula_lsp',
-      }
-
-      local result = vim.system(cmd, { text = true }):wait()
-      if result.code ~= 0 then
-        error(result.stderr ~= '' and result.stderr or result.stdout)
-      end
+      require('sf_formula.build').ensure_lsp()
     end,
   },
 
